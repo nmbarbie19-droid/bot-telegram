@@ -16,7 +16,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     usuarios[user_id] = {"estado": "inicio"}
 
     await update.message.reply_text(
-        "⚠️ Acesso VIP por 18 hoje.\n\n"
+        "🔥 Acesso VIP 18 hoje.\n\n"
         "Digite 1 para garantir.\n"
         "Digite 2 para sair."
     )
@@ -37,14 +37,14 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
             await update.message.reply_text(
                 f"🔥 Código: {codigo}\n"
-                "Faça o Pix de 18 e envie comprovante.\n"
+                "Faça o Pix de 18.\n"
                 "Expira em 30 minutos."
             )
 
             asyncio.create_task(lembrete(context, user_id))
 
         else:
-            await update.message.reply_text("Ok. Quando quiser, me chama.")
+            await update.message.reply_text("Ok.")
 
 async def lembrete(context, user_id):
     await asyncio.sleep(1200)
@@ -54,13 +54,13 @@ async def lembrete(context, user_id):
             text="⏳ Último aviso antes de expirar."
         )
 
-async def main():
+def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
 
-    await app.run_polling()
+    app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
