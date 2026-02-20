@@ -10,6 +10,7 @@ usuarios = {}
 VALOR_VIP = "R$ 19,99"
 CHAVE_PIX = "11948212565"
 
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     usuarios[user_id] = {"estado": "inicio"}
@@ -17,11 +18,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "🔥 ACESSO VIP 🔞 DISPONÍVEL HOJE\n\n"
         "• Conteúdo exclusivo 😈😜\n"
-        "• Grupo secreto 🙈\n"
+        "• GRUPO SECRETO 🙈\n"
         "• Acesso imediato após confirmação\n\n"
         "⚠️ Vagas limitadas hoje\n\n"
         "Digite EU QUERO para garantir agora."
     )
+
 
 async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -32,13 +34,11 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     estado = usuarios[user_id]["estado"]
 
-    gatilhos = ["eu quero", "quero", "1", "sim"]
-
-    if estado == "inicio" and texto in gatilhos:
+    if estado == "inicio" and texto == "eu quero":
         usuarios[user_id]["estado"] = "aguardando_pagamento"
 
         await update.message.reply_text(
-            "🔥 RESERVA ATIVADA 🔥\n\n"
+            "🔥 RESERVA ATIVADA\n\n"
             f"💰 Valor do VIP: {VALOR_VIP}\n\n"
             "🔑 Chave Pix:\n"
             f"{CHAVE_PIX}\n\n"
@@ -48,4 +48,33 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         asyncio.create_task(expiracao(context, user_id))
 
-    elif estado == "aguardando_pagamento"
+    elif estado == "aguardando_pagamento":
+        await update.message.reply_text(
+            "📩 Comprovante recebido.\n"
+            "Se estiver tudo certo, o acesso será liberado em instantes."
+        )
+
+
+async def expiracao(context: ContextTypes.DEFAULT_TYPE, user_id: int):
+    await asyncio.sleep(300)
+
+    if user_id in usuarios and usuarios[user_id]["estado"] == "aguardando_pagamento":
+        usuarios[user_id]["estado"] = "expirado"
+        await context.bot.send_message(
+            chat_id=user_id,
+            text="⏰ Sua reserva expirou.\n\nSe ainda quiser o acesso, digite EU QUERO novamente."
+        )
+
+
+def main():
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
+
+    print("Bot rodando...")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
