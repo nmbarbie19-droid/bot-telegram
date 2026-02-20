@@ -9,7 +9,7 @@ from telegram.ext import (
 
 # ================= CONFIG ================= #
 
-TOKEN = "SEU_TOKEN_AQUI"
+TOKEN = "8254943828:AAECucrL25k_klNQbdlInLW3GaUkWWEluAc"
 VALOR = "R$19,99"
 PIX = "11948212565"
 LINK_GRUPO = "https://t.me/SEU_GRUPO"
