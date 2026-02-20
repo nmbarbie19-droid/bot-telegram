@@ -32,13 +32,13 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     estado = usuarios[user_id]["estado"]
 
-    if estado == "inicio" and texto == "1":
+    if estado == "inicio" and texto == "EU QUERO":
         usuarios[user_id]["estado"] = "aguardando_pagamento"
 
         await update.message.reply_text(
             "🔥 RESERVA ATIVADA\n\n"
             f"💰 Valor do VIP: {19,99}\n\n"
-            "🔑 Chave Pix:11948212565\n"
+            "🔑 Chave Pix:\n"
             f"{CHAVE_PIX}\n\n"
             "⏳ Expira em 5 minutos.\n\n"
             "Após pagar, envie o comprovante aqui."
