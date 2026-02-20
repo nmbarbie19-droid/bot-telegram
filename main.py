@@ -16,8 +16,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         "🔥 ACESSO VIP 🔞 DISPONÍVEL HOJE\n\n"
-        "• Conteúdo exclusivo\n"
-        "• Atualizações frequentes\n"
+        "• Conteúdo exclusivo😈😜\n"
+        "• GRUPO SECRETO🙈\n"
         "• Acesso imediato após confirmação\n\n"
         "⚠️ Vagas limitadas hoje\n\n"
         "Digite EU QUERO para garantir agora."
@@ -28,7 +28,7 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.strip().lower()
 
     if user_id not in usuarios:
-        usuarios[user_id] = {"estado": "inicio"}
+        usuarios[user_id] = {"estado": "fala cao"}
 
     estado = usuarios[user_id]["estado"]
 
