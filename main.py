@@ -48,4 +48,4 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         asyncio.create_task(expiracao(context, user_id))
 
-    elif estado == "aguardando
+    elif estado == "aguardando_pagamento"
