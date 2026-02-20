@@ -3,26 +3,30 @@ from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
     MessageHandler,
-    filters,
     ContextTypes,
+    filters,
 )
+
+# ================= CONFIG ================= #
+
+TOKEN = "SEU_TOKEN_AQUI"
+VALOR = "R$19,99"
+PIX = "11948212565"
+LINK_GRUPO = "https://t.me/SEU_GRUPO"
+CODIGO_BONUS = "VIP2025"
+
+# ================= BANCO SIMPLES ================= #
 
 users = {}
 
-VALOR = "R$19,99"
-PIX = "11948212565"
-LINK_GRUPO = "https://t.me/SEUGRUPO"
-CODIGO_BONUS = "VIP2025"
-
-# ---------------- START ---------------- #
+# ================= START ================= #
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    
+
     if users.get(user_id) == "LIBERADO":
         await update.message.reply_text(
-            "✅ Você já tem acesso liberado.\n"
-            f"Grupo: {LINK_GRUPO}"
+            f"✅ Você já tem acesso.\n\n👉 {LINK_GRUPO}"
         )
         return
 
@@ -30,12 +34,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         f"🔥 RESERVA ATIVADA\n\n"
-        f"💰 VIP: {VALOR}\n"
-        f"🔑 Pix: {PIX}\n\n"
-        "⚠️ Após pagar envie o comprovante aqui."
+        f"💰 Valor VIP: {VALOR}\n"
+        f"🔑 Chave Pix: {PIX}\n\n"
+        "⚠️ Após pagar, envie qualquer mensagem aqui.\n"
+        "Assim que o Pix cair, liberamos seu acesso."
     )
 
-# ---------------- MENSAGENS ---------------- #
+# ================= MENSAGENS ================= #
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -43,14 +48,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if status == "AGUARDANDO_PAGAMENTO":
         await update.message.reply_text(
-            "⏳ Estamos aguardando o pagamento.\n"
-            "Assim que o Pix for identificado, seu acesso será liberado."
+            "⏳ Estamos aguardando a confirmação do pagamento.\n"
+            "Assim que o Pix for identificado, o acesso será liberado."
         )
 
     elif status == "LIBERADO":
         await update.message.reply_text(
-            "✅ Seu acesso já foi liberado.\n"
-            f"Grupo: {LINK_GRUPO}"
+            f"✅ Seu acesso já está liberado.\n\n👉 {LINK_GRUPO}"
         )
 
     else:
@@ -58,7 +62,48 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Digite /start para iniciar."
         )
 
-# ---------------- CONFIRMAÇÃO MANUAL ---------------- #
+# ================= CONFIRMAR PAGAMENTO ================= #
 
 async def confirmar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if len(context.args) == 0:
+    args = context.args if context.args else []
+
+    if not args:
+        await update.message.reply_text(
+            "Use assim:\n/confirmar ID_DO_USUARIO"
+        )
+        return
+
+    try:
+        user_id = int(args[0])
+    except ValueError:
+        await update.message.reply_text("ID inválido.")
+        return
+
+    users[user_id] = "LIBERADO"
+
+    await context.bot.send_message(
+        chat_id=user_id,
+        text=(
+            "✅ PAGAMENTO CONFIRMADO!\n\n"
+            f"🎁 Código bônus: {CODIGO_BONUS}\n\n"
+            f"👉 Acesse o grupo agora:\n{LINK_GRUPO}\n\n"
+            "⚠️ O conteúdo fixado é o principal. Salve agora."
+        )
+    )
+
+    await update.message.reply_text("Usuário liberado com sucesso.")
+
+# ================= MAIN ================= #
+
+def main():
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("confirmar", confirmar))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    print("Bot rodando igual máquina de fazer dinheiro 💸🔥")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
