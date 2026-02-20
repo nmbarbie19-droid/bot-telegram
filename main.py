@@ -1,80 +1,64 @@
-import os
-import asyncio
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import (
+    ApplicationBuilder,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    ContextTypes,
+)
 
-TOKEN = os.getenv("TOKEN")
+users = {}
 
-usuarios = {}
+VALOR = "R$19,99"
+PIX = "11948212565"
+LINK_GRUPO = "https://t.me/SEUGRUPO"
+CODIGO_BONUS = "VIP2025"
 
-VALOR_VIP = "R$ 19,99"
-CHAVE_PIX = "11948212565"
-
+# ---------------- START ---------------- #
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    usuarios[user_id] = {"estado": "inicio"}
+    
+    if users.get(user_id) == "LIBERADO":
+        await update.message.reply_text(
+            "✅ Você já tem acesso liberado.\n"
+            f"Grupo: {LINK_GRUPO}"
+        )
+        return
+
+    users[user_id] = "AGUARDANDO_PAGAMENTO"
 
     await update.message.reply_text(
-        "🔥 ACESSO VIP 🔞 DISPONÍVEL HOJE\n\n"
-        "• Conteúdo exclusivo 😈😜\n"
-        "• GRUPO SECRETO 🙈\n"
-        "• Acesso imediato após confirmação\n\n"
-        "⚠️ Vagas limitadas hoje\n\n"
-        "Digite EU QUERO para garantir agora."
+        f"🔥 RESERVA ATIVADA\n\n"
+        f"💰 VIP: {VALOR}\n"
+        f"🔑 Pix: {PIX}\n\n"
+        "⚠️ Após pagar envie o comprovante aqui."
     )
 
+# ---------------- MENSAGENS ---------------- #
 
-async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    texto = update.message.text.strip().lower()
+    status = users.get(user_id)
 
-    if user_id not in usuarios:
-        usuarios[user_id] = {"estado": "inicio"}
-
-    estado = usuarios[user_id]["estado"]
-
-    if estado == "inicio" and texto == "eu quero":
-        usuarios[user_id]["estado"] = "aguardando_pagamento"
-
+    if status == "AGUARDANDO_PAGAMENTO":
         await update.message.reply_text(
-            "🔥 RESERVA ATIVADA\n\n"
-            f"💰 Valor do VIP: {VALOR_VIP}\n\n"
-            "🔑 Chave Pix:\n"
-            f"{CHAVE_PIX}\n\n"
-            "⏳ Expira em 5 minutos.\n\n"
-            "Após pagar, envie o comprovante aqui."
+            "⏳ Estamos aguardando o pagamento.\n"
+            "Assim que o Pix for identificado, seu acesso será liberado."
         )
 
-        asyncio.create_task(expiracao(context, user_id))
-
-    elif estado == "aguardando_pagamento":
+    elif status == "LIBERADO":
         await update.message.reply_text(
-            "📩 Comprovante recebido.\n"
-            "Se estiver tudo certo, o acesso será liberado em instantes."
+            "✅ Seu acesso já foi liberado.\n"
+            f"Grupo: {LINK_GRUPO}"
         )
 
-
-async def expiracao(context: ContextTypes.DEFAULT_TYPE, user_id: int):
-    await asyncio.sleep(300)
-
-    if user_id in usuarios and usuarios[user_id]["estado"] == "aguardando_pagamento":
-        usuarios[user_id]["estado"] = "expirado"
-        await context.bot.send_message(
-            chat_id=user_id,
-            text="⏰ Sua reserva expirou.\n\nSe ainda quiser o acesso, digite EU QUERO novamente."
+    else:
+        await update.message.reply_text(
+            "Digite /start para iniciar."
         )
 
+# ---------------- CONFIRMAÇÃO MANUAL ---------------- #
 
-def main():
-    app = ApplicationBuilder().token(TOKEN).build()
-
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
-
-    print("Bot rodando...")
-    app.run_polling()
-
-
-if __name__ == "__main__":
-    main()
+async def confirmar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if len(context.args) == 0:
