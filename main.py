@@ -66,4 +66,52 @@ Pagamento via PIX 👇
         await update.message.reply_text(
             f"""📩 ENVIO DE COMPROVANTE
 
-Entre no grupo
+Entre no grupo abaixo e envie seu comprovante:
+
+{GRUPO_COMPROVANTE}
+
+⚠️ REGRAS:
+• Nome do comprovante deve ser igual ao do Telegram.
+• Pagamentos falsos serão ignorados.
+• Após validação manual você receberá o link do VIP privado.
+
+Aguarde a confirmação.""",
+            reply_markup=reply_markup
+        )
+
+    # ===== PRÉVIAS =====
+    elif texto == "👀 Ver Prévias":
+
+        keyboard = [["⬅️ Voltar ao Menu"]]
+        reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+        await update.message.reply_text(
+            f"""👀 PRÉVIAS GRATUITAS
+
+Acesse aqui:
+{GRUPO_PREVIAS}
+
+Quando decidir entrar no VIP, volte ao menu e clique em:
+🔥 Quero Acesso VIP""",
+            reply_markup=reply_markup
+        )
+
+    # ===== VOLTAR MENU =====
+    elif texto == "⬅️ Voltar ao Menu":
+        await start(update, context)
+
+    # ===== QUALQUER OUTRA COISA =====
+    else:
+        await update.message.reply_text(
+            "Use os botões do menu para continuar."
+        )
+
+
+app = ApplicationBuilder().token(TOKEN).build()
+
+app.add_handler(CommandHandler("start", start))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mensagens))
+
+print("BOT ONLINE 🚀")
+
+app.run_polling()
