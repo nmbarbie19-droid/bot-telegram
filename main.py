@@ -10,7 +10,7 @@ import logging
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-TOKEN = "8323335001:AAFv3yD7Gy1DDFUB4kWPPBcyISc7V2bheOc"
+TOKEN = "@Daylibarbie19_bot"
 
 VALOR = "R$19,99"
 PIX = "11948212565"
