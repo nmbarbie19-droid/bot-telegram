@@ -1,32 +1,17 @@
-import os
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+elif texto == "✅ Já Paguei":
 
-# TOKEN DO BOT
-TOKEN = "8323335001:AAFv3yD7Gy1DDFUB4kWPPBcyISc7V2bheOc"
+    await update.message.reply_text(
+        f"""📩 ENVIO DE COMPROVANTE
 
-# COMANDO /start
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+Entre no grupo abaixo e envie seu comprovante:
 
-    texto = """🔥 RESERVA VIP ATIVADA 🔥
+{GRUPO_COMPROVANTE}
 
-💰 Valor VIP: R$19,99
-🔑 Chave Pix: 11948212565
+⚠️ IMPORTANTE:
+• O nome do comprovante deve ser o mesmo do Telegram.
+• Após confirmação manual, você receberá o link do VIP.
+• Pagamentos falsos serão ignorados.
 
-⚠️ Após pagar, envie qualquer mensagem aqui.
-Assim que o Pix cair, liberamos seu acesso.
-
-👇 Clique abaixo para continuar.
+Aguarde a validação.
 """
-
-    await update.message.reply_text(texto)
-
-
-# INICIAR BOT
-app = ApplicationBuilder().token(TOKEN).build()
-
-app.add_handler(CommandHandler("start", start))
-
-print("BOT ONLINE 🚀")
-
-app.run_polling()
+    )
