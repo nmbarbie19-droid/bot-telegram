@@ -1,96 +1,99 @@
+import os
+import asyncio
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-TOKEN = "8323335001:AAFv3yD7Gy1DDFUB4kWPPBcyISc7V2bheOc"
+TOKEN = os.getenv("8323335001:AAFv3yD7Gy1DDFUB4kWPPBcyISc7V2bheOc")
 
-VALOR = "R$19,99"
+usuarios = {}
+
+VALOR_VIP = "R$ 19,99"
 CHAVE_PIX = "11948212565"
 
-GRUPO_COMPROVANTE = "https://t.me/+ZqnMDshtQ6k4OTBh"
-GRUPO_PREVIAS = "https://t.me/+ETimjCvSzUc4YWZh"
+LINK_GRUPO_VIP = "https://t.me/+ZqnMDshtQ6k4OTBh"
+LINK_GRUPO_PREVIA = "https://t.me/+ETimjCvSzUc4YWZh"
 
 
-# ===== INICIO =====
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    usuarios[user_id] = {"estado": "inicio"}
 
     await update.message.reply_text(
-        """🔥 ACESSO VIP PRIVADO 🔥
-
-Conteúdo exclusivo 🔥
-Material reservado 😈
-
-Se quiser participar digite:
-
-quero participar
-
-Ou digite:
-
-ver previas"""
+        "🔥 ACESSO VIP DISPONÍVEL\n\n"
+        "Conteúdo exclusivo + grupo fechado.\n\n"
+        "Digite EU QUERO para garantir agora."
     )
 
 
-# ===== MENSAGENS =====
-async def mensagens(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    texto = update.message.text.strip().lower()
 
-    texto = update.message.text.lower()
+    if user_id not in usuarios:
+        usuarios[user_id] = {"estado": "inicio"}
 
-    # ===== QUERO PARTICIPAR =====
-    if texto in ["quero participar", "eu quero", "manda sim", "quero"]:
+    estado = usuarios[user_id]["estado"]
+
+    # GERA RESERVA (aceita qualquer frase com 'quero')
+    if estado == "inicio" and "quero" in texto:
+        usuarios[user_id]["estado"] = "aguardando"
 
         await update.message.reply_text(
-            f"""💎 ACESSO VIP 💎
-
-Valor do acesso: {VALOR}
-
-Pagamento via PIX 👇
-
-Chave PIX:
-{CHAVE_PIX}
-
-Após pagar digite:
-
-ja paguei"""
+            "🔥 RESERVA ATIVADA\n\n"
+            f"💰 Valor: {VALOR_VIP}\n\n"
+            "🔑 Chave Pix:\n"
+            f"{CHAVE_PIX}\n\n"
+            "⏳ Expira em 5 minutos.\n\n"
+            "Após pagar, envie qualquer mensagem aqui."
         )
 
-    # ===== JA PAGUEI =====
-    elif texto in ["ja paguei", "paguei", "enviei pix"]:
+        asyncio.create_task(expirar(context, user_id))
+
+    # CONFIRMAÇÃO SIMPLES
+    elif estado == "aguardando":
+        usuarios[user_id]["estado"] = "vip"
 
         await update.message.reply_text(
-            f"""📩 ENVIO DO COMPROVANTE
-
-Entre no grupo abaixo e envie seu comprovante:
-
-{GRUPO_COMPROVANTE}
-
-Após validação manual você receberá o link VIP."""
+            "✅ Pagamento confirmado!\n\n"
+            "🔓 Acesso liberado:\n\n"
+            f"{LINK_GRUPO_VIP}"
         )
 
-    # ===== PREVIAS =====
-    elif texto in ["ver previas", "previas", "quero ver"]:
-
+    # SE JÁ EXPIROU
+    elif estado == "expirado":
         await update.message.reply_text(
-            f"""👀 PRÉVIAS DISPONÍVEIS
-
-Acesse aqui:
-{GRUPO_PREVIAS}
-
-Quando quiser o VIP digite:
-
-quero participar"""
-        )
-
-    # ===== QUALQUER OUTRA COISA =====
-    else:
-        await update.message.reply_text(
-            "Digite: quero participar  ou  ver previas"
+            "⏰ Sua reserva expirou.\n\n"
+            "Grupo de prévia:\n"
+            f"{LINK_GRUPO_PREVIA}\n\n"
+            "Digite EU QUERO para tentar novamente."
         )
 
 
-app = ApplicationBuilder().token(TOKEN).build()
+async def expirar(context: ContextTypes.DEFAULT_TYPE, user_id: int):
+    await asyncio.sleep(300)
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mensagens))
+    if user_id in usuarios and usuarios[user_id]["estado"] == "aguardando":
+        usuarios[user_id]["estado"] = "expirado"
 
-print("BOT ONLINE 🚀")
+        await context.bot.send_message(
+            chat_id=user_id,
+            text=(
+                "⏰ Tempo encerrado.\n\n"
+                "Você foi direcionado para o grupo de prévia:\n\n"
+                f"{LINK_GRUPO_PREVIA}"
+            )
+        )
 
-app.run_polling()
+
+def main():
+    app = ApplicationBuilder().token(TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, responder))
+
+    print("Bot rodando...")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
