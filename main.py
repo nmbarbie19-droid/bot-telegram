@@ -1,109 +1,99 @@
-from telegram import Update
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    MessageHandler,
-    ContextTypes,
-    filters,
-)
+import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters, ContextTypes
 
-# ================= CONFIG ================= #
+TOKEN = os.getenv("8323335001:AAFv3yD7Gy1DDFUB4kWPPBcyISc7V2bheOc")  # ou coloca direto o token aqui
 
-TOKEN = "8323335001:AAFv3yD7Gy1DDFUB4kWPPBcyISc7V2bheOc"
+VIP_LINK = "https://t.me/seugrupovip"
+PREVIEW_LINK = "https://t.me/seugrupoprevia"
+
 VALOR = "R$19,99"
 PIX = "11948212565"
-LINK_GRUPO = "https://t.me/SEU_GRUPO"
-CODIGO_BONUS = "VIP2025"
 
-# ================= BANCO SIMPLES ================= #
-
-users = {}
-
-# ================= START ================= #
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
+    keyboard = [
+        [InlineKeyboardButton("💎 Comprar VIP", callback_data="comprar")],
+        [InlineKeyboardButton("👀 Ver Prévia Grátis", callback_data="previa")],
+        [InlineKeyboardButton("✅ Já Paguei", callback_data="paguei")]
+    ]
 
-    if users.get(user_id) == "LIBERADO":
-        await update.message.reply_text(
-            f"✅ Você já tem acesso.\n\n👉 {LINK_GRUPO}"
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    texto = f"""
+🔥 *ACESSO VIP LIBERADO*
+
+💰 Valor: {VALOR}
+🔑 Chave Pix: `{PIX}`
+
+Após pagar, clique em *Já Paguei*.
+"""
+
+    await update.message.reply_text(texto, parse_mode="Markdown", reply_markup=reply_markup)
+
+
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "comprar":
+        await query.edit_message_text(
+            f"""
+🔥 *FINALIZAR PAGAMENTO*
+
+💰 Valor: {VALOR}
+🔑 Pix: `{PIX}`
+
+Após pagar, clique em *Já Paguei*.
+""",
+            parse_mode="Markdown"
         )
-        return
 
-    users[user_id] = "AGUARDANDO_PAGAMENTO"
+    elif query.data == "previa":
+        await query.edit_message_text(
+            f"""
+👀 *Grupo de Prévia Liberado*
 
+Entre aqui:
+{PREVIEW_LINK}
+
+Quando decidir comprar, clique novamente em /start
+"""
+        )
+
+    elif query.data == "paguei":
+        await query.edit_message_text(
+            f"""
+📸 Envie o comprovante aqui.
+
+Após confirmação manual, enviaremos o acesso VIP.
+"""
+        )
+
+
+async def comprovante_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        f"🔥 RESERVA ATIVADA\n\n"
-        f"💰 Valor VIP: {VALOR}\n"
-        f"🔑 Chave Pix: {PIX}\n\n"
-        "⚠️ Após pagar, envie qualquer mensagem aqui.\n"
-        "Assim que o Pix cair, liberamos seu acesso."
+        f"""
+⏳ Comprovante recebido.
+
+Assim que confirmado, enviaremos o link VIP.
+"""
     )
 
-# ================= MENSAGENS ================= #
+    # Aqui você pode depois manualmente liberar
+    # ou automatizar se quiser no futuro
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    status = users.get(user_id)
-
-    if status == "AGUARDANDO_PAGAMENTO":
-        await update.message.reply_text(
-            "⏳ Estamos aguardando a confirmação do pagamento.\n"
-            "Assim que o Pix for identificado, o acesso será liberado."
-        )
-
-    elif status == "LIBERADO":
-        await update.message.reply_text(
-            f"✅ Seu acesso já está liberado.\n\n👉 {LINK_GRUPO}"
-        )
-
-    else:
-        await update.message.reply_text(
-            "Digite /start para iniciar."
-        )
-
-# ================= CONFIRMAR PAGAMENTO ================= #
-
-async def confirmar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    args = context.args if context.args else []
-
-    if not args:
-        await update.message.reply_text(
-            "Use assim:\n/confirmar ID_DO_USUARIO"
-        )
-        return
-
-    try:
-        user_id = int(args[0])
-    except ValueError:
-        await update.message.reply_text("ID inválido.")
-        return
-
-    users[user_id] = "LIBERADO"
-
-    await context.bot.send_message(
-        chat_id=user_id,
-        text=(
-            "✅ PAGAMENTO CONFIRMADO!\n\n"
-            f"🎁 Código bônus: {CODIGO_BONUS}\n\n"
-            f"👉 Acesse o grupo agora:\n{LINK_GRUPO}\n\n"
-            "⚠️ O conteúdo fixado é o principal. Salve agora."
-        )
-    )
-
-    await update.message.reply_text("Usuário liberado com sucesso.")
-
-# ================= MAIN ================= #
 
 def main():
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("confirmar", confirmar))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, comprovante_handler))
 
-    print("Bot rodando igual máquina de fazer dinheiro 💸🔥")
+    print("Bot rodando igual máquina 💰🔥")
     app.run_polling()
+
 
 if __name__ == "__main__":
     main()
