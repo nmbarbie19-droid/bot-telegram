@@ -10,7 +10,7 @@ usuarios = {}
 VALOR_VIP = "R$ 19,99"
 CHAVE_PIX = "11948212565"
 
-LINK_GRUPO_VIP = "https://t.me/+ZqnMDshtQ6k4OTBh"
+LINK_GRUPO_CONFIRMACAO = "https://t.me/+ZqnMDshtQ6k4OTBh"
 LINK_GRUPO_PREVIA = "https://t.me/+ETimjCvSzUc4YWZh"
 
 
@@ -19,9 +19,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     usuarios[user_id] = {"estado": "inicio"}
 
     await update.message.reply_text(
-        "🔥 ACESSO VIP DISPONÍVEL\n\n"
-        "Conteúdo exclusivo + grupo fechado.\n\n"
-        "Digite EU QUERO para garantir agora."
+        "🔥 ACESSO VIP🔞 DISPONÍVEL\n\n"
+        "Digite QUERO para gerar sua reserva."
     )
 
 
@@ -34,12 +33,12 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     estado = usuarios[user_id]["estado"]
 
-    # GERA RESERVA (aceita qualquer frase com 'quero')
+    # GERA RESERVA
     if estado == "inicio" and "quero" in texto:
         usuarios[user_id]["estado"] = "aguardando"
 
         await update.message.reply_text(
-            "🔥 RESERVA ATIVADA\n\n"
+            "🔥 RESERVA GERADA\n\n"
             f"💰 Valor: {VALOR_VIP}\n\n"
             "🔑 Chave Pix:\n"
             f"{CHAVE_PIX}\n\n"
@@ -49,23 +48,34 @@ async def responder(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         asyncio.create_task(expirar(context, user_id))
 
-    # CONFIRMAÇÃO SIMPLES
+    # CONFIRMA PAGAMENTO (simples)
     elif estado == "aguardando":
-        usuarios[user_id]["estado"] = "vip"
+        usuarios[user_id]["estado"] = "confirmado"
 
         await update.message.reply_text(
-            "✅ Pagamento confirmado!\n\n"
-            "🔓 Acesso liberado:\n\n"
-            f"{LINK_GRUPO_VIP}"
+            "✅ Pagamento confirmado.\n\n"
+            "Entre no grupo de confirmação:\n\n"
+            f"{LINK_GRUPO_CONFIRMACAO}"
         )
 
-    # SE JÁ EXPIROU
+    # SE ESTÁ NA PRÉVIA E QUER TENTAR DE NOVO
+    elif estado == "expirado" and "quero" in texto:
+        usuarios[user_id]["estado"] = "aguardando"
+
+        await update.message.reply_text(
+            "🔥 Nova reserva gerada\n\n"
+            f"💰 Valor: {VALOR_VIP}\n\n"
+            "🔑 Chave Pix:\n"
+            f"{CHAVE_PIX}\n\n"
+            "⏳ Expira em 5 minutos."
+        )
+
+        asyncio.create_task(expirar(context, user_id))
+
     elif estado == "expirado":
         await update.message.reply_text(
-            "⏰ Sua reserva expirou.\n\n"
-            "Grupo de prévia:\n"
-            f"{LINK_GRUPO_PREVIA}\n\n"
-            "Digite EU QUERO para tentar novamente."
+            "Você está no grupo de prévia.\n\n"
+            "Digite QUERO para tentar novamente."
         )
 
 
@@ -79,8 +89,9 @@ async def expirar(context: ContextTypes.DEFAULT_TYPE, user_id: int):
             chat_id=user_id,
             text=(
                 "⏰ Tempo encerrado.\n\n"
-                "Você foi direcionado para o grupo de prévia:\n\n"
-                f"{LINK_GRUPO_PREVIA}"
+                "Entre no grupo de prévia:\n\n"
+                f"{LINK_GRUPO_PREVIA}\n\n"
+                "Lá você pode voltar para o bot quando quiser."
             )
         )
 
