@@ -1,43 +1,32 @@
-from telegram import Update, ReplyKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+import os
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-TOKEN = "8323335001:AAFv3yD7Gy1DDFUB4kWPPBcyISc7V2bheOc
-"
+# TOKEN DO BOT
+TOKEN = "8323335001:AAFv3yD7Gy1DDFUB4kWPPBcyISc7V2bheOc"
 
+# COMANDO /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [["🔥 Quero Acessar"]]
-    reply_markup = ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-    await update.message.reply_text(
-        "🔥 ACESSO VIP LIBERADO 🔥\n\n"
-        "Conteúdo exclusivo e privado.\n"
-        "Acesso imediato após pagamento.\n\n"
-        "Clique abaixo para continuar 👇",
-        reply_markup=reply_markup
-    )
+    texto = """🔥 RESERVA VIP ATIVADA 🔥
 
-async def mensagens(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = update.message.text
+💰 Valor VIP: R$19,99
+🔑 Chave Pix: 11948212565
 
-    if texto == "🔥 Quero Acessar":
-        await update.message.reply_text(
-            "💎 Últimas vagas disponíveis!\n\n"
-            "Valor promocional: R$19,90\n\n"
-            "Pagamento via PIX 👇"
-        )
+⚠️ Após pagar, envie qualquer mensagem aqui.
+Assim que o Pix cair, liberamos seu acesso.
 
-        await update.message.reply_text(
-            "🔑 Chave PIX:\n"
-            "SEU_EMAIL_OU_CHAVE_AQUI\n\n"
-            "Envie o comprovante aqui no chat."
-        )
+👇 Clique abaixo para continuar.
+"""
 
-    else:
-        await update.message.reply_text("Clique no botão para continuar.")
+    await update.message.reply_text(texto)
 
+
+# INICIAR BOT
 app = ApplicationBuilder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, mensagens))
+
+print("BOT ONLINE 🚀")
 
 app.run_polling()
